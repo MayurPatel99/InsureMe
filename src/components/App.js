@@ -1,14 +1,21 @@
-import React, { Component } from 'react';
 import '../styles/App.css'
+import React, { Component, Link } from 'react';
 import Profile from './Profile.js';
 import Signin from './Signin.js';
-import { UserSession } from 'blockstack';
-import { appConfig } from '../assets/constants'
+import {
+  UserSession,
+  AppConfig
+} from 'blockstack';
+import { Switch, Route } from 'react-router-dom'
 
-
-const userSession = new UserSession({ appConfig })
+const appConfig = new AppConfig(['store_write', 'publish_data'])
+const userSession = new UserSession({ appConfig: appConfig })
 
 export default class App extends Component {
+
+  constructor(props) {
+  	super(props);
+  }
 
   handleSignIn(e) {
     e.preventDefault();
@@ -26,7 +33,20 @@ export default class App extends Component {
         <div className="site-wrapper-inner">
           { !userSession.isUserSignedIn() ?
             <Signin userSession={userSession} handleSignIn={ this.handleSignIn } />
-            : <Profile userSession={userSession} handleSignOut={ this.handleSignOut } />
+            :
+            <Switch>
+              <Route
+                path='/:username?'
+                render={
+                  routeProps =>
+                    <Profile
+                      userSession={userSession}
+                      handleSignOut={ this.handleSignOut }
+                      {...routeProps}
+                    />
+                }
+              />
+            </Switch>
           }
         </div>
       </div>
@@ -36,9 +56,6 @@ export default class App extends Component {
   componentWillMount() {
     if (userSession.isSignInPending()) {
       userSession.handlePendingSignIn().then((userData) => {
-        //if (!userData.username) {
-        //  throw new Error('This app requires a username.')
-        //}
         window.location = window.location.origin;
       });
     }
