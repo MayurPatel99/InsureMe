@@ -165,7 +165,7 @@ export default class Profile extends Component {
                   <textarea className="input-status"
                     value={this.state.newStatus}
                     onChange={e => this.handleNewStatusChange(e)}
-                    placeholder="What's on your mind?"
+                    placeholder="Enter the prescription medication."
                   />
                 </div>
                 <div className="col-md-12 text-right">
