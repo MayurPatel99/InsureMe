@@ -15,7 +15,7 @@ class Profile extends Component {
           return 'Anonymous';
         },
         avatarUrl() {
-          return avatarFallbackImage;
+//          return avatarFallbackImage;
         },
       },
       username: "",
@@ -24,17 +24,15 @@ class Profile extends Component {
       statusIndex: 0,
       isLoading: false
     }
-
-    this.loadTasks = this.loadTasks.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.addTask = this.addTask.bind(this);
-    this.removeTask = this.removeTask.bind(this);
-    this.checkTask = this.checkTask.bind(this);
   }
 
   componentWillMount() {
-    this.loadTasks();
-  }
+  const { userSession } = this.props
+  this.setState({
+    person: new Person(userSession.loadUserData().profile),
+    username: userSession.loadUserData().username
+  });
+}
 
   componentWillReceiveProps(nextProps) {
     const nextTasks = nextProps.tasks;
@@ -44,72 +42,96 @@ class Profile extends Component {
       }
     }
   }
-  
+
+
+  handleNewStatusChange(event) {
+    this.setState({newStatus: event.target.value})
+  }
+
+  handleNewStatusSubmit(event) {
+    this.saveNewStatus(this.state.newStatus)
+    this.setState({
+      newStatus: ""
+    })
+  }
+
+  saveNewStatus(statusText) {
+   const { userSession } = this.props
+   let statuses = this.state.statuses
+
+   let status = {
+     id: this.state.statusIndex++,
+     text: statusText.trim(),
+     created_at: Date.now()
+   }
+
+   statuses.unshift(status)
+   const options = { encrypt: false }
+   userSession.putFile('statuses.json', JSON.stringify(statuses), options)
+     .then(() => {
+       this.setState({
+         statuses: statuses
+       })
+     })
+ }
+
   handleChange(event) {
     this.setState({value: event.target.value});
    }
 
-  render() {
-    const username = this.props.userSession.loadUserData().username;
-    const profile = this.props.userSession.loadUserData();
-    const person = new Person(profile);
+   render() {
+    const { handleSignOut, userSession } = this.props;
+    const { person } = this.state;
+    const { username } = this.state;
+
     return (
-      <div className="Dashboard">
-      <NavBar username={username} user={person} signOut={this.props.handleSignOut}/>
-        <div className="row justify-content-center"id="header">
-          <h3 className="user-info">
-            {username}'s to-dos
-          </h3>
-        </div>
-        <br></br>
-        <div className="row justify-content-center">
-          <div
-            id="addTask"
-            className="frame"
-            style={{borderColor: '#f8f9fa'}}
-          >
-            <form onSubmit={this.addTask} className="input-group">
-              <input
-                className="form-control"
-                type="text"
-                onChange={this.handleChange}
-                value={this.state.value}
-                required
-                placeholder="To-do..."
-                autoFocus={true}
-              />
-              <div className="input-group-append" id="add-task">
-                <input type="submit" className="btn btn-primary" value="Add"/>
+      !userSession.isSignInPending() && person ?
+      <div className="container">
+        <div className="row">
+          <div className="col-md-offset-3 col-md-6">
+            <div className="col-md-12">
+              <div className="avatar-section">
+                <img
+                  src={ person.avatarUrl()}// ? person.avatarUrl() : avatarFallbackImage }
+                  className="img-rounded avatar"
+                  id="avatar-image"
+                />
+                <div className="username">
+                  <h1>
+                    <span id="heading-name">{ person.name() ? person.name()
+                      : 'Nameless Person' }</span>
+                    </h1>
+                  <span>{username}</span>
+                  <span>
+                    &nbsp;|&nbsp;
+                    <a onClick={ handleSignOut.bind(this) }>(Logout)</a>
+                  </span>
+                </div>
               </div>
-            </form>
             </div>
+
+            <div className="new-status">
+              <div className="col-md-12">
+                <textarea className="input-status"
+                  value={this.state.newStatus}
+                  onChange={e => this.handleNewStatusChange(e)}
+                  placeholder="Enter a status"
+                />
+              </div>
+              <div className="col-md-12">
+                <button
+                  className="btn btn-primary btn-lg"
+                  onClick={e => this.handleNewStatusSubmit(e)}
+                >
+                  Submit
+                </button>
+              </div>
+            </div>
+
           </div>
-        <br></br>
-        <div className="row justify-content-center">
-          <div className="frame">
-            {this.state.tasks.map((task, i) =>
-              <ul key={i}>
-                <div className="row">
-                  <input type="checkbox" className="form-check-input" data-index={i} onClick={this.checkTask} checked={task[1]? true : false}></input>
-                  <div className="col">
-                    <span className="input-group-text">
-                      <div className="task">
-                        {task[1]? <s>{task[0]}</s> : task[0]}
-                      </div>
-                      <div className="delete">
-                        <button className="btn btn-primary" data-index={i} onClick={this.removeTask}>
-                          <div className="X" data-index={i}>X</div>
-                        </button>
-                      </div>
-                    </span>
-                    </div>
-                  </div>
-              </ul>
-            )}
-          </div>
-      </div>
-    </div>
-  );
+        </div>
+      </div> : null
+    );
   }
 
 }
