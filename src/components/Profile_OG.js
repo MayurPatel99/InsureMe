@@ -5,24 +5,13 @@ import {jsonCopy, remove, add, check} from '../assets/utils'
 import { appConfig, TASKS_FILENAME } from '../assets/constants'
 import '../styles/Profile.css'
 
-class Profile extends Component {
+class Profile_OG extends Component {
   constructor(props) {
   	super(props);
 
   	this.state = {
-      person: {
-        name() {
-          return 'Anonymous';
-        },
-        avatarUrl() {
-          return avatarFallbackImage;
-        },
-      },
-      username: "",
-      newStatus: "",
-      statuses: [],
-      statusIndex: 0,
-      isLoading: false
+      tasks: [],
+      value: '',
     }
 
     this.loadTasks = this.loadTasks.bind(this);
@@ -44,10 +33,47 @@ class Profile extends Component {
       }
     }
   }
-  
+
+  loadTasks() {
+    const options = { decrypt: true };
+    this.props.userSession.getFile(TASKS_FILENAME, options)
+    .then((content) => {
+      if(content) {
+        const tasks = JSON.parse(content);
+        this.setState({tasks});
+      }
+    })
+  }
+
+  saveTasks(tasks) {
+    const options = { encrypt: true };
+    this.props.userSession.putFile(TASKS_FILENAME, JSON.stringify(tasks), options);
+  }
+
   handleChange(event) {
     this.setState({value: event.target.value});
    }
+
+  removeTask(e) {
+    e.preventDefault();
+    //fixed: undefined data-index from input
+    const tasks = remove(e.currentTarget.dataset.index, this.state);
+    this.setState({ tasks });
+    this.saveTasks(tasks);
+  }
+
+  addTask(e) {
+    e.preventDefault();
+    const tasks = add(this.state);
+    this.setState({value: '', tasks});
+    this.saveTasks(tasks);
+  }
+
+  checkTask(e) {
+    const tasks = check(e.target.dataset.index, this.state);
+    this.setState({ tasks });
+    this.saveTasks(tasks);
+  }
 
   render() {
     const username = this.props.userSession.loadUserData().username;
@@ -116,8 +142,8 @@ class Profile extends Component {
 
 // Made this a default prop (instead of using this.userSession) so a dummy userSession
 // can be passed in for testing purposes
-Profile.defaultProps = {
+Profile_OG.defaultProps = {
   userSession: new UserSession(appConfig)
 };
 
-export default Profile
+export default Profile_OG

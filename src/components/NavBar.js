@@ -9,7 +9,7 @@ class NavBar extends Component {
     const user = this.props.user
     return (
       <nav className="navbar navbar-expand-md navbar-dark bg-blue fixed-top">
-        <Link className="navbar-brand" to="/">Blockstack To-do List</Link>
+        <Link className="navbar-brand" to="/">InsureMe</Link>
         <ul className="navbar-nav mr-auto">
           <li className="nav-item">
             <Link className="nav-link" to='/'>{username}</Link>
