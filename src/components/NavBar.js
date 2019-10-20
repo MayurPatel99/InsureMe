@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Redirect, Link } from 'react-router-dom'
 import '../styles/NavBar.css'
+
 
 class NavBar extends Component {
 
@@ -13,6 +14,9 @@ class NavBar extends Component {
         <ul className="navbar-nav mr-auto">
           <li className="nav-item">
             <Link className="nav-link" to='/'>{username}</Link>
+          </li>
+          <li className="nav-item">
+            <Link className="nav-link" to='/FindCoverage'>Find Coverage</Link>
           </li>
         </ul>
         <img src={user.avatarUrl() ? user.avatarUrl() : './avatar-placeholder.png'} class="avatar" width="25" height="25"alt=""/>

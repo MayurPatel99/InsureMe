@@ -2,6 +2,7 @@ import '../styles/App.css'
 import React, { Component, Link } from 'react';
 import Profile from './Profile.js';
 import Signin from './Signin.js';
+import FindCoverage from  './FindCoverage.js';
 import {
   UserSession,
   AppConfig
@@ -36,10 +37,21 @@ export default class App extends Component {
             :
             <Switch>
               <Route
-                path='/:username?'
+                exact path='/'
                 render={
                   routeProps =>
                     <Profile
+                      userSession={userSession}
+                      handleSignOut={ this.handleSignOut }
+                      {...routeProps}
+                    />
+                }
+              />
+              <Route
+                exact path='/FindCoverage'
+                render={
+                  routeProps =>
+                    <FindCoverage
                       userSession={userSession}
                       handleSignOut={ this.handleSignOut }
                       {...routeProps}

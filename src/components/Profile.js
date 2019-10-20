@@ -22,9 +22,10 @@ export default class Profile extends Component {
   	  	},
   	  },
       username: "",
-      newStatus: "",
-      statuses: [],
-      statusIndex: 0,
+      newProvider: "",
+      newPlan: "",
+      provider: "",
+      plan: "",
       isLoading: false
   	};
   }
@@ -41,33 +42,48 @@ export default class Profile extends Component {
     });
   }
 
-  handleNewStatusChange(event) {
-    this.setState({newStatus: event.target.value})
+  handleNewProviderChange(event) {
+    this.setState({newProvider: event.target.value})
   }
 
-  handleNewStatusSubmit(event) {
-    this.saveNewStatus(this.state.newStatus)
+  handleNewProviderSubmit(event) {
+    this.saveNewProvider(this.state.newProvider)
     this.setState({
-      newStatus: ""
+      newProvider: ""
     })
   }
 
-  saveNewStatus(statusText) {
+  handleNewPlanChange(event) {
+    this.setState({newPlan: event.target.value})
+  }
+
+  handleNewPlanSubmit(event) {
+    this.saveNewPlan(this.state.newPlan)
+    this.setState({
+      newPlan: ""
+    })
+  }
+
+  saveNewProvider(statusText) {
     const { userSession } = this.props
-    let statuses = this.state.statuses
 
-    let status = {
-      id: this.state.statusIndex++,
-      text: statusText.trim(),
-      created_at: Date.now()
-    }
-
-    statuses.unshift(status)
     const options = { encrypt: false }
-    userSession.putFile('statuses.json', JSON.stringify(statuses), options)
+    userSession.putFile('provider.json', JSON.stringify(statusText), options)
       .then(() => {
         this.setState({
-          statuses: statuses
+          provider: statusText
+        })
+      })
+  }
+
+  saveNewPlan(statusText) {
+    const { userSession } = this.props
+
+    const options = { encrypt: false }
+    userSession.putFile('plan.json', JSON.stringify(statusText), options)
+      .then(() => {
+        this.setState({
+          plan: statusText
         })
       })
   }
@@ -77,19 +93,30 @@ export default class Profile extends Component {
     this.setState({ isLoading: true })
     if (this.isLocal()) {
       const options = { decrypt: false }
-      userSession.getFile('statuses.json', options)
+      userSession.getFile('provider.json', options)
         .then((file) => {
           var statuses = JSON.parse(file || '[]')
           this.setState({
             person: new Person(userSession.loadUserData().profile),
             username: userSession.loadUserData().username,
-            statusIndex: statuses.length,
-            statuses: statuses,
+            provider: statuses
           })
         })
         .finally(() => {
           this.setState({ isLoading: false })
         })
+        userSession.getFile('plan.json', options)
+          .then((file) => {
+            var statuses = JSON.parse(file || '[]')
+            this.setState({
+              person: new Person(userSession.loadUserData().profile),
+              username: userSession.loadUserData().username,
+              plan: statuses,
+            })
+          })
+          .finally(() => {
+            this.setState({ isLoading: false })
+          })
     } else {
       const username = this.props.match.params.username
 
@@ -109,8 +136,8 @@ export default class Profile extends Component {
         .then((file) => {
           var statuses = JSON.parse(file || '[]')
           this.setState({
-            statusIndex: statuses.length,
-            statuses: statuses
+            provider: statuses,
+            plan: statuses
           })
         })
         .catch((error) => {
@@ -127,6 +154,7 @@ export default class Profile extends Component {
   }
 
   render() {
+
     const { handleSignOut, userSession } = this.props;
     const { person } = this.state;
     const { username } = this.state;
@@ -135,9 +163,9 @@ export default class Profile extends Component {
       !userSession.isSignInPending() && person ?
       <div className="container">
       <NavBar username={username} user={person} signOut={this.props.handleSignOut}/>
-        <div className="row">
-          <div className="col-md-offset-3 col-md-6">
-            <div className="col-md-12">
+        <div className="row text-center">
+          <div className="col-md col-md">
+            <div className="col-md">
               <div className="avatar-section">
                 <img
                   src={ person.avatarUrl() ? person.avatarUrl() : avatarFallbackImage }
@@ -159,34 +187,54 @@ export default class Profile extends Component {
                 </div>
               </div>
             </div>
+            <div className="col-md statuses">
+            Provider name:
+            {this.state.isLoading && <span> Loading...</span>}
+            {" ".concat(this.state.provider)}
+            </div>
+            <div className="col-md statuses">
+            Plan name:
+            {this.state.isLoading && <span> Loading...</span>}
+            {" ".concat(this.state.plan)}
+            </div>
             {this.isLocal() &&
               <div className="new-status">
                 <div className="col-md-12">
                   <textarea className="input-status"
-                    value={this.state.newStatus}
-                    onChange={e => this.handleNewStatusChange(e)}
-                    placeholder="Enter the prescription medication."
+                    value={this.state.newProvider}
+                    onChange={e => this.handleNewProviderChange(e)}
+                    placeholder="Enter the Provider name."
                   />
                 </div>
-                <div className="col-md-12 text-right">
+                <div className="col-md-12 text-center">
                   <button
                     className="btn btn-primary btn-lg"
-                    onClick={e => this.handleNewStatusSubmit(e)}
+                    onClick={e => this.handleNewProviderSubmit(e)}
                   >
                     Submit
                   </button>
                 </div>
               </div>
             }
-            <div className="col-md-12 statuses">
-            {this.state.isLoading && <span>Loading...</span>}
-            {this.state.statuses.map((status) => (
-                <div className="status" key={status.id}>
-                  {status.text}
+            {this.isLocal() &&
+              <div className="new-status">
+                <div className="col-md-12">
+                  <textarea className="input-status"
+                    value={this.state.newPlan}
+                    onChange={e => this.handleNewPlanChange(e)}
+                    placeholder="Enter the Plan name."
+                  />
                 </div>
-                )
-            )}
-            </div>
+                <div className="col-md-12 text-center">
+                  <button
+                    className="btn btn-primary btn-lg"
+                    onClick={e => this.handleNewPlanSubmit(e)}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            }
           </div>
         </div>
       </div> : null
