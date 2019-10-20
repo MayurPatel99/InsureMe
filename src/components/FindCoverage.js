@@ -163,13 +163,15 @@ class FindCoverage extends Component {
   }
 
   checkCoverage(prescription){
-    if (this.state.provider == "aetna"){
+    console.log(this.state.provider);
+    console.log(this.state.provider === "Horizon");
+    if (this.state.provider == "Aetna"){
       if (aetna.text.includes(prescription)){
         return "Yes"
       } else {
         return "No"
       }
-    } else if (this.state.provider == "horizon") {
+    } else if (this.state.provider == "Horizon") {
       if (horizon.text.includes(prescription)){
         return "Yes"
       } else {
@@ -182,15 +184,16 @@ class FindCoverage extends Component {
   }
 
   render() {
+    const { person } = this.state;
     const username = this.props.userSession.loadUserData().username;
     const profile = this.props.userSession.loadUserData();
-    const person = new Person(profile);
+    //const person = new Person(profile);
     return (
       <div className="Dashboard">
       <NavBar username={username} user={person} signOut={this.props.handleSignOut}/>
         <div className="row justify-content-center"id="header">
           <h3 className="user-info">
-            {username}'s Prescription List
+            {person.name()}'s Prescription List
           </h3>
         </div>
         <br></br>
